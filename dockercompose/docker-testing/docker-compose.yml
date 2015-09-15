@@ -1,0 +1,16 @@
+mainserver:
+  image: nicholasjackson/docker-testing
+  ports:
+    - "8001:8001"
+  links:
+    - helloworldserver:mimic-docker
+    - mailserver:mailcatcher
+helloworldserver:
+  image: nicholasjackson/mimic-docker
+  ports:
+    - "11988:11988"
+mailserver:
+  image: schickling/mailcatcher
+  ports:
+    - "1080:1080"
+    - "1025:1025"
