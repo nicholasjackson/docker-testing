@@ -67,14 +67,15 @@ task :e2e do
 	  p `exec docker-compose -f ./dockercompose/docker-testing/docker-compose.yml up -d`
     sleep 2
 		setConsulVariables host, 8500
-		sleep 2
+		sleep 5
 
 		p 'Running Tests'
-		exec "cucumber #{feature}"
+		puts `cucumber --color #{feature}`
 	ensure
+    p 'Stopping Application'
 		# remove stop running application
-		p `docker-compose -f ./dockercompose/docker-testing/docker-compose.yml stop`
+		puts `docker-compose -f ./dockercompose/docker-testing/docker-compose.yml stop`
 		# remove stopped containers
-		p `echo y | docker-compose -f ./dockercompose/docker-testing/docker-compose.yml rm`
+		puts `echo y | docker-compose -f ./dockercompose/docker-testing/docker-compose.yml rm`
 	end
 end
