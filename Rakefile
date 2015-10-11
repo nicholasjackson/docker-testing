@@ -36,7 +36,7 @@ def self.wait_until_server_running server
 
     end
 
-    if response == nil || response.to_str.contains? != "OK"
+    if response == nil || !response.to_str.include?('OK')
       puts "Waiting for server to start"
       sleep 1
       self.wait_until_server_running server
