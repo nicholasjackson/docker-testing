@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec /usr/bin/consul-template -consul=consul:8500 -template "/docker-testing/config.ctmpl:/docker-testing/config.json:killall server"

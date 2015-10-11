@@ -1,0 +1,13 @@
+{
+  "HelloWorldServer" : {
+    "Server": {{key "api/mail/HelloWorldServer/server"}},
+    "Port": {{key "api/mail/HelloWorldServer/port"}}
+  },
+  "SMTPServer" : {
+		"Server": {{key "api/mail/SMTPServer/server"}},
+    "Port": {{key "api/mail/SMTPServer/port"}},
+		"User": {{key "api/mail/SMTPServer/user"}},
+		"Password": {{key "api/mail/SMTPServer/password"}},
+		"UseAuth": {{key "api/mail/SMTPServer/auth"}}
+	}
+} 

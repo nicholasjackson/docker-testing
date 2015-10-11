@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM progrium/busybox
 
 EXPOSE 8001
 
@@ -8,4 +8,21 @@ ADD ./server /docker-testing/server
 
 RUN chmod 755 /docker-testing/server
 
-CMD ["/docker-testing/server","MAILSERVER_1_PORT_1080_TCP_ADDR","MAILSERVER_1_PORT_1025_TCP_PORT","HELLOWORLDSERVER_1_PORT_11988_TCP_ADDR","HELLOWORLDSERVER_1_PORT_11988_TCP_PORT"]
+# consul-template
+RUN opkg-install install wget tar
+
+RUN wget --no-check-certificate https://github.com/hashicorp/consul-template/releases/download/v0.10.0/consul-template_0.10.0_linux_386.tar.gz
+RUN tar -xvzf consul-template_0.10.0_linux_386.tar.gz
+RUN mv consul-template_0.10.0_linux_386/consul-template /usr/bin/consul-template
+
+# Add s6 binaries and config
+ADD s6-bin /usr/bin
+ADD s6-etc /etc/s6
+RUN chmod -R 777 /usr/bin
+RUN chmod -R 777 /etc/s6
+
+# Add consul template
+ADD config.ctmpl /docker-testing/config.ctmpl
+
+ENTRYPOINT ["/usr/bin/s6-svscan","/etc/s6"]
+CMD []

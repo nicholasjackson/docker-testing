@@ -1,5 +1,20 @@
-require 'docker'
-require_relative 'rake-modules/docker'
+require 'consul/client'
+
+def setConsulVariables host, port
+
+  puts "Setting key values for server: #{host}:#{port}"
+
+  kvs = Consul::Client::KeyValue.new :api_host => host, :api_port => port, :logger => Logger.new("/dev/null")
+
+  kvs.put('api/mail/HelloWorldServer/server','helloworldserver')
+  kvs.put('api/mail/HelloWorldServer/port','11988')
+
+  kvs.put('api/mail/SMTPServer/server','mailserver')
+  kvs.put('api/mail/SMTPServer/port','1025')
+  kvs.put('api/mail/SMTPServer/user','')
+  kvs.put('api/mail/SMTPServer/password','')
+  kvs.put('api/mail/SMTPServer/auth',false)
+end
 
 def get_docker_ip_address
 	if !ENV['DOCKER_HOST']
@@ -14,14 +29,24 @@ def get_docker_ip_address
 	end
 end
 
-task :e2e do
-	feature = ARGV.last
-	if feature != "e2e"
-		feature = "--tags #{feature}"
-	else
-		feature = ""
-	end
+task :run do
+	host = get_docker_ip_address
 
+	begin
+	  p `docker-compose -f ./dockercompose/docker-testing/docker-compose.yml up`
+    sleep 2
+		setConsulVariables host, 8500
+		Process.wait pid
+	rescue SystemExit, Interrupt
+		p 'Shutting down application'
+	ensure
+		p `docker-compose -f ./dockercompose/docker-testing/docker-compose.yml stop`
+		# remove stopped containers
+		p `echo y | docker-compose -f ./dockercompose/docker-testing/docker-compose.yml rm`
+	end
+end
+
+task :e2e do
 	host = get_docker_ip_address
 
 	puts "Running Tests for #{host}"
@@ -30,18 +55,26 @@ task :e2e do
 	ENV['MIMIC_SERVER_URI'] = "http://#{host}:11988"
 	ENV['EMAIL_SERVER_URI'] = "http://#{host}:1080"
 
+	feature = ARGV.last
+	if feature != "e2e"
+		feature = "--tags #{feature}"
+	else
+		feature = ""
+	end
+
+	puts "Running Tests"
 	begin
-		pid = Process.fork do
-	    exec 'docker-compose -f ./dockercompose/spot-gps-cache/docker-compose.yml up > serverlog.txt'
-		end
+	  p `exec docker-compose -f ./dockercompose/docker-testing/docker-compose.yml up -d`
+    sleep 2
+		setConsulVariables host, 8500
+		sleep 2
 
-		sleep 5
-
-		sh "cucumber #{feature}"
+		p 'Running Tests'
+		exec "cucumber #{feature}"
 	ensure
 		# remove stop running application
-		sh 'docker-compose -f ./dockercompose/spot-gps-cache/docker-compose.yml stop'
+		p `docker-compose -f ./dockercompose/docker-testing/docker-compose.yml stop`
 		# remove stopped containers
-		sh 'echo y | docker-compose -f ./dockercompose/spot-gps-cache/docker-compose.yml rm'
+		p `echo y | docker-compose -f ./dockercompose/docker-testing/docker-compose.yml rm`
 	end
 end
