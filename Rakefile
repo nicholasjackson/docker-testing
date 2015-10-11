@@ -29,6 +29,20 @@ def get_docker_ip_address
 	end
 end
 
+def self.wait_until_server_running server
+    begin
+      response = RestClient.send("get", "#{server}/health")
+    rescue
+
+    end
+
+    if response == nil || response.to_str.contains? != "OK"
+      puts "Waiting for server to start"
+      sleep 1
+      self.wait_until_server_running server
+    end
+  end
+
 task :run do
 	host = get_docker_ip_address
 
@@ -64,10 +78,10 @@ task :e2e do
 
 	puts "Running Tests"
 	begin
-	  p `exec docker-compose -f ./dockercompose/docker-testing/docker-compose.yml up -d`
+	  puts `exec docker-compose -f ./dockercompose/docker-testing/docker-compose.yml up -d`
     sleep 2
 		setConsulVariables host, 8500
-		sleep 5
+		self.wait_until_server_running ENV['WEB_SERVER_URI']
 
 		p 'Running Tests'
 		puts `cucumber --color #{feature}`
