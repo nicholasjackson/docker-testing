@@ -63,14 +63,15 @@ end
 task :cdt do
 	host = get_docker_ip_address
 
-	puts "Running Consumer Tests for #{host}"
+	puts "Running Tests for #{host}"
 
 	ENV['WEB_SERVER_URI'] = "http://#{host}:8001"
 	ENV['MIMIC_SERVER_URI'] = "http://#{host}:11988"
 	ENV['EMAIL_SERVER_URI'] = "http://#{host}:1080"
+  ENV['DOCKER_CLIENT_TIMEOUT'] = '360'
 
 	feature = ARGV.last
-	if feature != "e2e"
+	if feature != "cdt"
 		feature = "--tags #{feature}"
 	else
 		feature = ""
@@ -78,7 +79,7 @@ task :cdt do
 
 	puts "Running Tests"
 	begin
-	  puts `exec docker-compose -f ./dockercompose/docker-testing/docker-compose.yml up -d`
+	  puts `docker-compose -f ./dockercompose/docker-testing/docker-compose.yml up -d`
     sleep 2
 		setConsulVariables host, 8500
 		self.wait_until_server_running ENV['WEB_SERVER_URI']
