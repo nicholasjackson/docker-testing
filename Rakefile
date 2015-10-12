@@ -60,10 +60,10 @@ task :run do
 	end
 end
 
-task :e2e do
+task :cdt do
 	host = get_docker_ip_address
 
-	puts "Running Tests for #{host}"
+	puts "Running Consumer Tests for #{host}"
 
 	ENV['WEB_SERVER_URI'] = "http://#{host}:8001"
 	ENV['MIMIC_SERVER_URI'] = "http://#{host}:11988"
